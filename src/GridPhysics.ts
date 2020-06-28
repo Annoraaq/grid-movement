@@ -5,7 +5,7 @@ import { Player } from "./Player";
 const Vector2 = Phaser.Math.Vector2;
 type Vector2 = Phaser.Math.Vector2;
 
-export class ChessboardPhysics {
+export class GridPhysics {
   private movementDirection = Direction.NONE;
   private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
   private tileSizePixelsWalked: number = 0;

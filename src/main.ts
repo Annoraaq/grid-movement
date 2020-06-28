@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
-import { ChessboardControls } from "./ChessboardControls";
-import { ChessboardPhysics } from "./ChessboardPhysics";
+import { GridControls } from "./GridControls";
+import { GridPhysics } from "./GridPhysics";
 import { Player } from "./Player";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
@@ -15,8 +15,8 @@ export class GameScene extends Phaser.Scene {
 
   static readonly TILE_SIZE = 48;
 
-  private chessboardControls: ChessboardControls;
-  private chessboardPhysics: ChessboardPhysics;
+  private gridControls: GridControls;
+  private gridPhysics: GridPhysics;
 
   constructor() {
     super(sceneConfig);
@@ -38,19 +38,16 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(playerSprite);
 
-    this.chessboardPhysics = new ChessboardPhysics(
+    this.gridPhysics = new GridPhysics(
       new Player(playerSprite, 6, 8, 8),
       cloudCityTilemap
     );
-    this.chessboardControls = new ChessboardControls(
-      this.input,
-      this.chessboardPhysics
-    );
+    this.gridControls = new GridControls(this.input, this.gridPhysics);
   }
 
   public update(_time: number, delta: number) {
-    this.chessboardControls.update();
-    this.chessboardPhysics.update(delta);
+    this.gridControls.update();
+    this.gridPhysics.update(delta);
   }
 
   public preload() {

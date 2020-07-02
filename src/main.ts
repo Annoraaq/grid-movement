@@ -26,14 +26,12 @@ export class GameScene extends Phaser.Scene {
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
     cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap
-        .createStaticLayer(i, "Cloud City", 0, 0)
-        .setOrigin(0);
+      const layer = cloudCityTilemap.createStaticLayer(i, "Cloud City", 0, 0);
       layer.setDepth(i);
       layer.scale = 3;
     }
 
-    const playerSprite = this.add.sprite(0, 0, "player").setOrigin(0);
+    const playerSprite = this.add.sprite(0, 0, "player");
     playerSprite.setDepth(2);
 
     this.cameras.main.startFollow(playerSprite);

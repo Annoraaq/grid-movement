@@ -30,14 +30,14 @@ export class Player {
   ) {
     this.sprite.scale = Player.SCALE_FACTOR;
     this.sprite.setPosition(
-      startTilePosX * GameScene.TILE_SIZE - this.playerOffsetX(),
-      startTilePosY * GameScene.TILE_SIZE - this.playerOffsetY()
+      startTilePosX * GameScene.TILE_SIZE + this.playerOffsetX(),
+      startTilePosY * GameScene.TILE_SIZE + this.playerOffsetY()
     );
     this.sprite.setFrame(this.framesOfDirection(Direction.DOWN).standing);
   }
 
   getPosition(): Phaser.Math.Vector2 {
-    return this.sprite.getTopLeft();
+    return this.sprite.getCenter();
   }
 
   setPosition(position: Phaser.Math.Vector2): void {
@@ -60,9 +60,9 @@ export class Player {
 
   getTilePos(): Phaser.Math.Vector2 {
     const x =
-      (this.sprite.getTopLeft().x + this.playerOffsetX()) / GameScene.TILE_SIZE;
+      (this.sprite.getCenter().x - this.playerOffsetX()) / GameScene.TILE_SIZE;
     const y =
-      (this.sprite.getTopLeft().y + this.playerOffsetY()) / GameScene.TILE_SIZE;
+      (this.sprite.getCenter().y - this.playerOffsetY()) / GameScene.TILE_SIZE;
     return new Phaser.Math.Vector2(Math.floor(x), Math.floor(y));
   }
 
@@ -74,14 +74,14 @@ export class Player {
   }
 
   private playerOffsetX(): number {
-    return (
-      (Player.SPRITE_FRAME_WIDTH * Player.SCALE_FACTOR - GameScene.TILE_SIZE) /
-      2
-    );
+    return GameScene.TILE_SIZE / 2;
   }
   private playerOffsetY(): number {
     return (
-      Player.SPRITE_FRAME_HEIGHT * Player.SCALE_FACTOR - GameScene.TILE_SIZE
+      -(
+        (Player.SPRITE_FRAME_HEIGHT * Player.SCALE_FACTOR) %
+        GameScene.TILE_SIZE
+      ) / 2
     );
   }
 

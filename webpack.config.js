@@ -35,19 +35,17 @@ module.exports = {
   },
 
   plugins: [
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, "index.html"),
-        to: path.resolve(__dirname, "dist")
-      },
-      {
-        from: path.resolve(__dirname, "assets", "**", "*"),
-        to: path.resolve(__dirname, "dist")
-      }
-    ]),
-    new webpack.DefinePlugin({
-      "typeof CANVAS_RENDERER": JSON.stringify(true),
-      "typeof WEBGL_RENDERER": JSON.stringify(true)
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "index.html").replace(/\\/g, '/'),
+          to: path.resolve(__dirname, "dist").replace(/\\/g, '/')
+        },
+        {
+          from: path.resolve(__dirname, "assets", "**", "*").replace(/\\/g, '/'),
+          to: path.resolve(__dirname, "dist").replace(/\\/g, '/')
+        }
+      ]
     })
   ],
 

@@ -1,7 +1,5 @@
 import * as Phaser from "phaser";
-import { GridControls } from "./GridControls";
-import { GridPhysics } from "./GridPhysics";
-import { Player } from "./Player";
+import { Config, GridMovementPlugin } from "./GridMovementPlugin";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -15,8 +13,7 @@ export class GameScene extends Phaser.Scene {
 
   static readonly TILE_SIZE = 48;
 
-  private gridControls: GridControls;
-  private gridPhysics: GridPhysics;
+  private gridMovementPlugin: GridMovementPlugin;
 
   constructor() {
     super(sceneConfig);
@@ -30,30 +27,30 @@ export class GameScene extends Phaser.Scene {
       layer.setDepth(i);
       layer.scale = 3;
     }
-
     const playerSprite = this.add.sprite(0, 0, "player");
     playerSprite.setDepth(2);
-
     this.cameras.main.startFollow(playerSprite);
 
-    this.gridPhysics = new GridPhysics(
-      new Player(playerSprite, 6, 8, 8),
-      cloudCityTilemap
-    );
-    this.gridControls = new GridControls(this.input, this.gridPhysics);
+    const config: Config = {
+      tileSize: GameScene.TILE_SIZE,
+      spriteFrameWidth: 52,
+      spriteFrameHeight: 72,
+      scaleFactor: 1.5,
+      charsInRow: 4,
+      framesPerCharRow: 3,
+      framesPerCharCol: 4,
+    };
+    this.gridMovementPlugin.create(playerSprite, cloudCityTilemap, config);
   }
 
-  public update(_time: number, delta: number) {
-    this.gridControls.update();
-    this.gridPhysics.update(delta);
-  }
+  public update(_time: number, _delta: number) {}
 
   public preload() {
     this.load.image("tiles", "assets/cloud_tileset.png");
     this.load.tilemapTiledJSON("cloud-city-map", "assets/cloud_city.json");
     this.load.spritesheet("player", "assets/characters.png", {
-      frameWidth: Player.SPRITE_FRAME_WIDTH,
-      frameHeight: Player.SPRITE_FRAME_HEIGHT,
+      frameWidth: 52,
+      frameHeight: 72,
     });
   }
 }
@@ -65,6 +62,15 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   },
   type: Phaser.AUTO,
   scene: GameScene,
+  plugins: {
+    scene: [
+      {
+        key: "gridMovementPlugin",
+        plugin: GridMovementPlugin,
+        mapping: "gridMovementPlugin",
+      },
+    ],
+  },
   scale: {
     width: GameScene.CANVAS_WIDTH,
     height: GameScene.CANVAS_HEIGHT,

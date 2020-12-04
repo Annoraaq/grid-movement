@@ -1,13 +1,13 @@
-import { GameScene } from "./main";
 import { Direction } from "./Direction";
-import { Player } from "./Player";
+import { TileSizePerSecond } from "./GridMovementPlugin";
+import { GridPlayer } from "./GridPlayer";
 
 const Vector2 = Phaser.Math.Vector2;
 type Vector2 = Phaser.Math.Vector2;
 
 export class GridPhysics {
   private movementDirection = Direction.NONE;
-  private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
+  private readonly speedPixelsPerSecond: number;
   private tileSizePixelsWalked: number = 0;
   private decimalPlacesLeft = 0;
   private movementDirectionVectors: {
@@ -20,9 +20,13 @@ export class GridPhysics {
   };
 
   constructor(
-    private player: Player,
-    private tileMap: Phaser.Tilemaps.Tilemap
-  ) {}
+    private player: GridPlayer,
+    private tileMap: Phaser.Tilemaps.Tilemap,
+    private tileSize: number,
+    private speed: TileSizePerSecond
+  ) {
+    this.speedPixelsPerSecond = this.tileSize * this.speed;
+  }
 
   movePlayer(direction: Direction): void {
     if (this.isMoving()) return;
@@ -102,13 +106,11 @@ export class GridPhysics {
   private willCrossTileBorderThisUpdate(
     pixelsToWalkThisUpdate: number
   ): boolean {
-    return (
-      this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= GameScene.TILE_SIZE
-    );
+    return this.tileSizePixelsWalked + pixelsToWalkThisUpdate >= this.tileSize;
   }
 
   private movePlayerSpriteRestOfTile(): void {
-    this.movePlayerSprite(GameScene.TILE_SIZE - this.tileSizePixelsWalked);
+    this.movePlayerSprite(this.tileSize - this.tileSizePixelsWalked);
     this.stopMoving();
   }
 
@@ -119,7 +121,7 @@ export class GridPhysics {
     this.player.setPosition(newPlayerPos);
     this.tileSizePixelsWalked += speed;
     this.updatePlayerFrame(this.movementDirection, this.tileSizePixelsWalked);
-    this.tileSizePixelsWalked %= GameScene.TILE_SIZE;
+    this.tileSizePixelsWalked %= this.tileSize;
   }
 
   private updatePlayerFrame(
@@ -134,7 +136,7 @@ export class GridPhysics {
   }
 
   private hasWalkedHalfATile(tileSizePixelsWalked: number): boolean {
-    return tileSizePixelsWalked > GameScene.TILE_SIZE / 2;
+    return tileSizePixelsWalked > this.tileSize / 2;
   }
 
   private stopMoving(): void {

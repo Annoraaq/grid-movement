@@ -23,23 +23,24 @@ export class GridPlayer {
   constructor(
     private sprite: Phaser.GameObjects.Sprite,
     private characterIndex: number,
-    startTilePosX: number,
-    startTilePosY: number,
     private tileSize: number
   ) {
     this.charsInRow =
       this.sprite.texture.source[0].width /
       this.sprite.width /
       GridPlayer.FRAMES_CHAR_ROW;
-    this.sprite.setPosition(
-      startTilePosX * tileSize + this.playerOffsetX(),
-      startTilePosY * tileSize + this.playerOffsetY()
-    );
     this.sprite.setFrame(this.framesOfDirection(Direction.DOWN).standing);
   }
 
   getPosition(): Phaser.Math.Vector2 {
     return this.sprite.getCenter();
+  }
+
+  setTilePosition(tilePosition: Phaser.Math.Vector2): void {
+    this.sprite.setPosition(
+      tilePosition.x * this.tileSize + this.playerOffsetX(),
+      tilePosition.y * this.tileSize + this.playerOffsetY()
+    );
   }
 
   setPosition(position: Phaser.Math.Vector2): void {

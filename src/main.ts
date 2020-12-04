@@ -31,7 +31,10 @@ export class GameScene extends Phaser.Scene {
     playerSprite.scale = 1.5;
     playerSprite.setDepth(2);
     this.cameras.main.startFollow(playerSprite);
-    this.gridMovementPlugin.create(playerSprite, cloudCityTilemap);
+
+    this.gridMovementPlugin.create(playerSprite, cloudCityTilemap, {
+      startPosition: new Phaser.Math.Vector2(8, 8),
+    });
   }
 
   public update(_time: number, _delta: number) {}

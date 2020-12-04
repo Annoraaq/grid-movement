@@ -6,6 +6,7 @@ export type TileSizePerSecond = number;
 
 export interface Config {
   speed?: TileSizePerSecond;
+  startPosition?: Phaser.Math.Vector2;
 }
 
 export class GridMovementPlugin extends Phaser.Plugins.ScenePlugin {
@@ -30,11 +31,18 @@ export class GridMovementPlugin extends Phaser.Plugins.ScenePlugin {
     tilemap: Phaser.Tilemaps.Tilemap,
     config?: Config
   ) {
+    this.config = {
+      speed: 4,
+      startPosition: new Phaser.Math.Vector2(0, 0),
+      ...config,
+    };
     const tilemapScale = tilemap.layers[0].tilemapLayer.scale;
     const tileSize = tilemap.tileWidth * tilemapScale;
-    this.config = { speed: 4, ...config };
+    const gridPlayer = new GridPlayer(playerSprite, 6, tileSize);
+    gridPlayer.setTilePosition(this.config.startPosition);
+
     this.gridPhysics = new GridPhysics(
-      new GridPlayer(playerSprite, 6, 8, 8, tileSize),
+      gridPlayer,
       tilemap,
       tileSize,
       this.config.speed

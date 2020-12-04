@@ -1,3 +1,4 @@
+import { Grid } from "matter";
 import { Direction } from "./Direction";
 
 interface FrameRow {
@@ -7,26 +8,29 @@ interface FrameRow {
 }
 
 export class GridPlayer {
+  private static readonly FRAMES_CHAR_ROW = 3;
+  private static readonly FRAMES_CHAR_COL = 4;
   private directionToFrameRow: { [key in Direction]?: number } = {
     [Direction.DOWN]: 0,
     [Direction.LEFT]: 1,
     [Direction.RIGHT]: 2,
     [Direction.UP]: 3,
   };
+  private charsInRow: number;
+
   public lastFootLeft = false;
+
   constructor(
     private sprite: Phaser.GameObjects.Sprite,
     private characterIndex: number,
     startTilePosX: number,
     startTilePosY: number,
-    private tileSize: number,
-    private spriteFrameHeight: number,
-    private scaleFactor: number,
-    private charsInRow: number,
-    private framesPerCharRow: number,
-    private framesPerCharCol: number
+    private tileSize: number
   ) {
-    this.sprite.scale = this.scaleFactor;
+    this.charsInRow =
+      this.sprite.texture.source[0].width /
+      this.sprite.width /
+      GridPlayer.FRAMES_CHAR_ROW;
     this.sprite.setPosition(
       startTilePosX * tileSize + this.playerOffsetX(),
       startTilePosY * tileSize + this.playerOffsetY()
@@ -75,17 +79,17 @@ export class GridPlayer {
     return this.tileSize / 2;
   }
   private playerOffsetY(): number {
-    return -((this.spriteFrameHeight * this.scaleFactor) % this.tileSize) / 2;
+    return -(this.sprite.height % this.tileSize) / 2;
   }
 
   private framesOfDirection(direction: Direction): FrameRow {
     const playerCharRow = Math.floor(this.characterIndex / this.charsInRow);
     const playerCharCol = this.characterIndex % this.charsInRow;
-    const framesInRow = this.charsInRow * this.framesPerCharRow;
-    const framesInSameRowBefore = this.framesPerCharRow * playerCharCol;
+    const framesInRow = this.charsInRow * GridPlayer.FRAMES_CHAR_ROW;
+    const framesInSameRowBefore = GridPlayer.FRAMES_CHAR_ROW * playerCharCol;
     const rows =
       this.directionToFrameRow[direction] +
-      playerCharRow * this.framesPerCharCol;
+      playerCharRow * GridPlayer.FRAMES_CHAR_COL;
     const startFrame = framesInSameRowBefore + rows * framesInRow;
     return {
       leftFoot: startFrame,

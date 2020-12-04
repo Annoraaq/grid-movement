@@ -6,20 +6,16 @@ export type TileSizePerSecond = number;
 
 export interface Config {
   speed?: TileSizePerSecond;
-  tileSize: number;
-  spriteFrameWidth: number;
-  spriteFrameHeight: number;
-  scaleFactor: number;
-  charsInRow: number;
-  framesPerCharRow: number;
-  framesPerCharCol: number;
 }
 
 export class GridMovementPlugin extends Phaser.Plugins.ScenePlugin {
   private gridControls: GridControls;
   private gridPhysics: GridPhysics;
   private config: Config;
-  constructor(public scene, pluginManager) {
+  constructor(
+    public scene: Phaser.Scene,
+    pluginManager: Phaser.Plugins.PluginManager
+  ) {
     super(scene, pluginManager);
   }
 
@@ -32,24 +28,15 @@ export class GridMovementPlugin extends Phaser.Plugins.ScenePlugin {
   create(
     playerSprite: Phaser.GameObjects.Sprite,
     tilemap: Phaser.Tilemaps.Tilemap,
-    config: Config
+    config?: Config
   ) {
+    const tilemapScale = tilemap.layers[0].tilemapLayer.scale;
+    const tileSize = tilemap.tileWidth * tilemapScale;
     this.config = { speed: 4, ...config };
     this.gridPhysics = new GridPhysics(
-      new GridPlayer(
-        playerSprite,
-        6,
-        8,
-        8,
-        this.config.tileSize,
-        this.config.spriteFrameHeight,
-        this.config.scaleFactor,
-        this.config.charsInRow,
-        this.config.framesPerCharRow,
-        this.config.framesPerCharCol
-      ),
+      new GridPlayer(playerSprite, 6, 8, 8, tileSize),
       tilemap,
-      this.config.tileSize,
+      tileSize,
       this.config.speed
     );
     this.gridControls = new GridControls(this.scene.input, this.gridPhysics);

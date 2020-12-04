@@ -28,19 +28,10 @@ export class GameScene extends Phaser.Scene {
       layer.scale = 3;
     }
     const playerSprite = this.add.sprite(0, 0, "player");
+    playerSprite.scale = 1.5;
     playerSprite.setDepth(2);
     this.cameras.main.startFollow(playerSprite);
-
-    const config: Config = {
-      tileSize: GameScene.TILE_SIZE,
-      spriteFrameWidth: 52,
-      spriteFrameHeight: 72,
-      scaleFactor: 1.5,
-      charsInRow: 4,
-      framesPerCharRow: 3,
-      framesPerCharCol: 4,
-    };
-    this.gridMovementPlugin.create(playerSprite, cloudCityTilemap, config);
+    this.gridMovementPlugin.create(playerSprite, cloudCityTilemap);
   }
 
   public update(_time: number, _delta: number) {}

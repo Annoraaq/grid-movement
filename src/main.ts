@@ -1,5 +1,6 @@
 import * as Phaser from "phaser";
-import { Config, GridMovementPlugin } from "./GridMovementPlugin";
+import { Controls } from "./Controls";
+import * as GridMovementPlugin from "phaser-grid-movement-plugin";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -11,12 +12,12 @@ export class GameScene extends Phaser.Scene {
   static readonly CANVAS_WIDTH = 720;
   static readonly CANVAS_HEIGHT = 528;
 
-  static readonly TILE_SIZE = 48;
-
-  private gridMovementPlugin: GridMovementPlugin;
+  private gridMovementPlugin: GridMovementPlugin.GridMovementPlugin;
+  private controls: Controls;
 
   constructor() {
     super(sceneConfig);
+    console.log(GridMovementPlugin);
   }
 
   public create() {
@@ -35,9 +36,13 @@ export class GameScene extends Phaser.Scene {
     this.gridMovementPlugin.create(playerSprite, cloudCityTilemap, {
       startPosition: new Phaser.Math.Vector2(8, 8),
     });
+
+    this.controls = new Controls(this.input, this.gridMovementPlugin);
   }
 
-  public update(_time: number, _delta: number) {}
+  public update(_time: number, _delta: number) {
+    this.controls.update();
+  }
 
   public preload() {
     this.load.image("tiles", "assets/cloud_tileset.png");

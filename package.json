@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/browserify": "^12.0.36",
     "ts-loader": "^7.0.5",
     "typescript": "^3.9.5",
     "webpack": "^4.43.0",
@@ -18,6 +19,7 @@
   "dependencies": {
     "copy-webpack-plugin": "^6.0.3",
     "phaser": "^3.23.0",
+    "phaser-grid-movement-plugin": "1.0.6",
     "webpack-cli": "^3.3.12"
   }
 }

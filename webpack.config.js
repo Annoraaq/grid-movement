@@ -33,7 +33,6 @@ module.exports = {
     contentBase: path.resolve(__dirname, "dist"),
     https: true
   },
-
   plugins: [
     new CopyWebpackPlugin({
       patterns: [

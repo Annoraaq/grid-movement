@@ -1,15 +1,11 @@
-import { GameScene } from "./main";
 import { Direction } from "./Direction";
+import { GameScene } from "./main";
 import { Player } from "./Player";
 
 const Vector2 = Phaser.Math.Vector2;
 type Vector2 = Phaser.Math.Vector2;
 
 export class GridPhysics {
-  private movementDirection = Direction.NONE;
-  private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
-  private tileSizePixelsWalked: number = 0;
-  private decimalPlacesLeft = 0;
   private movementDirectionVectors: {
     [key in Direction]?: Vector2;
   } = {
@@ -19,24 +15,33 @@ export class GridPhysics {
     [Direction.RIGHT]: Vector2.RIGHT,
   };
 
+  private movementDirection: Direction = Direction.NONE;
+
+  private readonly speedPixelsPerSecond: number = GameScene.TILE_SIZE * 4;
+  private tileSizePixelsWalked: number = 0;
+
+  private lastMovementIntent = Direction.NONE;
+
   constructor(
     private player: Player,
     private tileMap: Phaser.Tilemaps.Tilemap
   ) {}
 
   movePlayer(direction: Direction): void {
+    this.lastMovementIntent = direction;
     if (this.isMoving()) return;
     if (this.isBlockingDirection(direction)) {
-      this.player.setStandingFrame(direction);
+      this.player.stopAnimation(direction);
     } else {
       this.startMoving(direction);
     }
   }
 
-  update(delta: number): void {
+  update(delta: number) {
     if (this.isMoving()) {
       this.updatePlayerPosition(delta);
     }
+    this.lastMovementIntent = Direction.NONE;
   }
 
   private isMoving(): boolean {
@@ -44,59 +49,53 @@ export class GridPhysics {
   }
 
   private startMoving(direction: Direction): void {
+    this.player.startAnimation(direction);
     this.movementDirection = direction;
+    this.updatePlayerTilePos();
   }
 
-  private tilePosInDirection(direction: Direction): Vector2 {
-    return this.player
-      .getTilePos()
-      .add(this.movementDirectionVectors[direction]);
-  }
+  private updatePlayerPosition(delta: number) {
+    const pixelsToWalkThisUpdate = this.getPixelsToWalkThisUpdate(delta);
 
-  private isBlockingDirection(direction: Direction): boolean {
-    return this.hasBlockingTile(this.tilePosInDirection(direction));
-  }
-
-  private hasNoTile(pos: Vector2): boolean {
-    return !this.tileMap.layers.some((layer) =>
-      this.tileMap.hasTileAt(pos.x, pos.y, layer.name)
-    );
-  }
-
-  private hasBlockingTile(pos: Vector2): boolean {
-    if (this.hasNoTile(pos)) return true;
-    return this.tileMap.layers.some((layer) => {
-      const tile = this.tileMap.getTileAt(pos.x, pos.y, false, layer.name);
-      return tile && tile.properties.collides;
-    });
-  }
-
-  private updatePlayerPosition(delta: number): void {
-    this.decimalPlacesLeft = this.getDecimalPlaces(
-      this.getSpeedPerDelta(delta) + this.decimalPlacesLeft
-    );
-    const pixelsToWalkThisUpdate = this.getIntegerPart(
-      this.getSpeedPerDelta(delta) + this.decimalPlacesLeft
-    );
-
-    if (this.willCrossTileBorderThisUpdate(pixelsToWalkThisUpdate)) {
-      this.movePlayerSpriteRestOfTile();
-    } else {
+    if (!this.willCrossTileBorderThisUpdate(pixelsToWalkThisUpdate)) {
       this.movePlayerSprite(pixelsToWalkThisUpdate);
+    } else if (this.shouldContinueMoving()) {
+      this.movePlayerSprite(pixelsToWalkThisUpdate);
+      this.updatePlayerTilePos();
+    } else {
+      this.movePlayerSprite(GameScene.TILE_SIZE - this.tileSizePixelsWalked);
+      this.stopMoving();
     }
   }
 
-  private getIntegerPart(float: number): number {
-    return Math.floor(float);
+  private updatePlayerTilePos() {
+    this.player.setTilePos(
+      this.player
+        .getTilePos()
+        .add(this.movementDirectionVectors[this.movementDirection])
+    );
   }
 
-  private getDecimalPlaces(float: number): number {
-    return float % 1;
+  private movePlayerSprite(pixelsToMove: number) {
+    const directionVec = this.movementDirectionVectors[
+      this.movementDirection
+    ].clone();
+    const movementDistance = directionVec.multiply(new Vector2(pixelsToMove));
+    const newPlayerPos = this.player.getPosition().add(movementDistance);
+    this.player.setPosition(newPlayerPos);
+
+    this.tileSizePixelsWalked += pixelsToMove;
+    this.tileSizePixelsWalked %= GameScene.TILE_SIZE;
   }
 
-  private getSpeedPerDelta(delta: number): number {
+  private getPixelsToWalkThisUpdate(delta: number): number {
     const deltaInSeconds = delta / 1000;
     return this.speedPixelsPerSecond * deltaInSeconds;
+  }
+
+  private stopMoving(): void {
+    this.player.stopAnimation(this.movementDirection);
+    this.movementDirection = Direction.NONE;
   }
 
   private willCrossTileBorderThisUpdate(
@@ -107,43 +106,34 @@ export class GridPhysics {
     );
   }
 
-  private movePlayerSpriteRestOfTile(): void {
-    this.movePlayerSprite(GameScene.TILE_SIZE - this.tileSizePixelsWalked);
-    this.stopMoving();
+  private shouldContinueMoving(): boolean {
+    return (
+      this.movementDirection == this.lastMovementIntent &&
+      !this.isBlockingDirection(this.lastMovementIntent)
+    );
   }
 
-  private movePlayerSprite(speed: number): void {
-    const newPlayerPos = this.player
-      .getPosition()
-      .add(this.movementDistance(speed));
-    this.player.setPosition(newPlayerPos);
-    this.tileSizePixelsWalked += speed;
-    this.updatePlayerFrame(this.movementDirection, this.tileSizePixelsWalked);
-    this.tileSizePixelsWalked %= GameScene.TILE_SIZE;
+  private isBlockingDirection(direction: Direction): boolean {
+    return this.hasBlockingTile(this.tilePosInDirection(direction));
   }
 
-  private updatePlayerFrame(
-    direction: Direction,
-    tileSizePixelsWalked: number
-  ): void {
-    if (this.hasWalkedHalfATile(tileSizePixelsWalked)) {
-      this.player.setStandingFrame(direction);
-    } else {
-      this.player.setWalkingFrame(direction);
-    }
+  private tilePosInDirection(direction: Direction): Vector2 {
+    return this.player
+      .getTilePos()
+      .add(this.movementDirectionVectors[direction]);
   }
 
-  private hasWalkedHalfATile(tileSizePixelsWalked: number): boolean {
-    return tileSizePixelsWalked > GameScene.TILE_SIZE / 2;
+  private hasBlockingTile(pos: Vector2): boolean {
+    if (this.hasNoTile(pos)) return true;
+    return this.tileMap.layers.some((layer) => {
+      const tile = this.tileMap.getTileAt(pos.x, pos.y, false, layer.name);
+      return tile && tile.properties.collides;
+    });
   }
 
-  private stopMoving(): void {
-    this.movementDirection = Direction.NONE;
-  }
-
-  private movementDistance(speed): Vector2 {
-    return this.movementDirectionVectors[this.movementDirection]
-      .clone()
-      .multiply(new Vector2(speed));
+  private hasNoTile(pos: Vector2): boolean {
+    return !this.tileMap.layers.some((layer) =>
+      this.tileMap.hasTileAt(pos.x, pos.y, layer.name)
+    );
   }
 }

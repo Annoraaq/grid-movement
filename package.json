@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "copy-webpack-plugin": "^6.0.3",
-    "phaser": "^3.23.0",
+    "phaser": "^3.52.0",
     "webpack-cli": "^3.3.12"
   }
 }

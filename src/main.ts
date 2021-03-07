@@ -1,7 +1,8 @@
 import * as Phaser from "phaser";
+import { Player } from "./Player";
 import { GridControls } from "./GridControls";
 import { GridPhysics } from "./GridPhysics";
-import { Player } from "./Player";
+import { Direction } from "./Direction";
 
 const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   active: false,
@@ -9,15 +10,13 @@ const sceneConfig: Phaser.Types.Scenes.SettingsConfig = {
   key: "Game",
 };
 
+const CANVAS_WIDTH = 720;
+const CANVAS_HEIGHT = 528;
+
 export class GameScene extends Phaser.Scene {
-  static readonly CANVAS_WIDTH = 720;
-  static readonly CANVAS_HEIGHT = 528;
-
   static readonly TILE_SIZE = 48;
-
   private gridControls: GridControls;
   private gridPhysics: GridPhysics;
-
   constructor() {
     super(sceneConfig);
   }
@@ -26,21 +25,25 @@ export class GameScene extends Phaser.Scene {
     const cloudCityTilemap = this.make.tilemap({ key: "cloud-city-map" });
     cloudCityTilemap.addTilesetImage("Cloud City", "tiles");
     for (let i = 0; i < cloudCityTilemap.layers.length; i++) {
-      const layer = cloudCityTilemap.createStaticLayer(i, "Cloud City", 0, 0);
+      const layer = cloudCityTilemap.createLayer(i, "Cloud City", 0, 0);
       layer.setDepth(i);
       layer.scale = 3;
     }
 
     const playerSprite = this.add.sprite(0, 0, "player");
     playerSprite.setDepth(2);
-
+    playerSprite.scale = 3;
     this.cameras.main.startFollow(playerSprite);
+    this.cameras.main.roundPixels = true;
+    const player = new Player(playerSprite, new Phaser.Math.Vector2(6, 6));
 
-    this.gridPhysics = new GridPhysics(
-      new Player(playerSprite, 6, 8, 8),
-      cloudCityTilemap
-    );
+    this.gridPhysics = new GridPhysics(player, cloudCityTilemap);
     this.gridControls = new GridControls(this.input, this.gridPhysics);
+
+    this.createPlayerAnimation(Direction.UP, 90, 92);
+    this.createPlayerAnimation(Direction.RIGHT, 78, 80);
+    this.createPlayerAnimation(Direction.DOWN, 54, 56);
+    this.createPlayerAnimation(Direction.LEFT, 66, 68);
   }
 
   public update(_time: number, delta: number) {
@@ -50,10 +53,27 @@ export class GameScene extends Phaser.Scene {
 
   public preload() {
     this.load.image("tiles", "assets/cloud_tileset.png");
-    this.load.tilemapTiledJSON("cloud-city-map", "assets/cloud_city.json");
+    this.load.tilemapTiledJSON("cloud-city-map", "assets/cloud-city.json");
     this.load.spritesheet("player", "assets/characters.png", {
-      frameWidth: Player.SPRITE_FRAME_WIDTH,
-      frameHeight: Player.SPRITE_FRAME_HEIGHT,
+      frameWidth: 26,
+      frameHeight: 36,
+    });
+  }
+
+  private createPlayerAnimation(
+    name: string,
+    startFrame: number,
+    endFrame: number
+  ) {
+    this.anims.create({
+      key: name,
+      frames: this.anims.generateFrameNumbers("player", {
+        start: startFrame,
+        end: endFrame,
+      }),
+      frameRate: 10,
+      repeat: -1,
+      yoyo: true,
     });
   }
 }
@@ -66,11 +86,10 @@ const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   scene: GameScene,
   scale: {
-    width: GameScene.CANVAS_WIDTH,
-    height: GameScene.CANVAS_HEIGHT,
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-
   parent: "game",
   backgroundColor: "#48C4F8",
 };

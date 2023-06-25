@@ -16,7 +16,7 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
-    "copy-webpack-plugin": "^6.0.3",
+    "copy-webpack-plugin": "^11.0.0",
     "phaser": "^3.52.0",
     "webpack-cli": "^5.0.1"
   }
